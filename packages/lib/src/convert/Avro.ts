@@ -199,7 +199,12 @@ function propertyToType(
   }
 
   if (schema.type) {
-    return propertyToAvroPrimitive(parentSchema, schema, propertyName);
+    if (Array.isArray(schema.type)) {
+      return schema.type.map((type: any) =>
+        propertyToAvroPrimitive(parentSchema, type, propertyName),
+      );
+    }
+    return propertyToAvroPrimitive(parentSchema, schema.type, propertyName);
   }
 
   if (schema.allOf) {
@@ -409,26 +414,24 @@ function enumToAvro(
 
 function propertyToAvroPrimitive(
   parentSchema: JSONSchema7,
-  schema: JSONSchema7,
+  schemaType: JSONSchema7,
   propertyName: string,
 ): AvroPrimitiveType {
-  const schemaType = schema.type;
-
   if (typeof schemaType !== 'string') {
     throw new Error(
-      `Schema ${parentSchema.$id} property ${propertyName} with type '${
-        schema.type
-      }' is not primite type`,
+      `Schema ${
+        parentSchema.$id
+      } property ${propertyName} with type '${schemaType}' is not primite type`,
     );
   }
 
-  const type = convertPrimitiveType(schema.type as string);
+  const type = convertPrimitiveType(schemaType as string);
 
   if (!type) {
     throw new Error(
-      `Schema ${parentSchema.$id} property ${propertyName} with type '${
-        schema.type
-      }' can't be converted to any avro type`,
+      `Schema ${
+        parentSchema.$id
+      } property ${propertyName} with type '${schemaType}' can't be converted to any avro type`,
     );
   }
 
