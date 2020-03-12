@@ -217,6 +217,16 @@ function propertyToType(
     );
   }
 
+  if (schema.anyOf) {
+    return anyOfToAvro(
+      cache,
+      rootSchema,
+      parentSchema,
+      schema.anyOf as Array<JSONSchema7>,
+      propertyName,
+    );
+  }
+
   throw new Error(
     `A JSON Schema attribute '${propertyName}' does not have a known Avro mapping`,
   );
@@ -256,6 +266,24 @@ function allOfToAvro(
     allOf[0],
     propertyName,
   );
+}
+
+function anyOfToAvro(
+  cache: Cache,
+  rootSchema: JSONSchema7,
+  parentSchema: JSONSchema7,
+  anyOf: Array<JSONSchema7>,
+  propertyName: string,
+): AvroUnion {
+  return anyOf.map(type => {
+    return propertyToType(
+      cache,
+      rootSchema,
+      parentSchema,
+      type,
+      propertyName,
+    ) as AvroPrimitiveType | AvroComplexType;
+  });
 }
 
 function objectToAvro(
